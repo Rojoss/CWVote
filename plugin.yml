@@ -1,0 +1,12 @@
+main : com.clashwars.cwvote.CWVote
+name: CWVote
+version: 0.1
+description: ClashWars voting plugin.
+depend: [CWCore]
+commands:
+  vote:
+    description: Main vote command
+    usage: /<command>
+  votekey:
+    description: Command to manage vote keys.
+    usage: /<command>
