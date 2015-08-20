@@ -1,9 +1,12 @@
 package com.clashwars.cwvote;
 
+import com.clashwars.clashwars.ClashWars;
 import com.clashwars.cwcore.CWCore;
+import com.clashwars.cwcore.mysql.MySQL;
 import com.clashwars.cwvote.commands.Commands;
-import com.clashwars.cwvote.mysql.MySQL;
-import com.clashwars.cwvote.mysql.SqlPass;
+import com.clashwars.cwvote.config.PluginCfg;
+import com.clashwars.cwvote.shop.ShopMenu;
+import com.clashwars.cwvote.tokens.TokenManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
@@ -16,10 +19,16 @@ import java.util.logging.Logger;
 public class CWVote extends JavaPlugin {
 
     private static CWVote instance;
+    private ClashWars cw;
     private CWCore cwcore;
+
+    private PluginCfg cfg;
 
     private MySQL sql;
     private Connection c;
+
+    public TokenManager tm;
+    public ShopMenu shop;
 
     private Commands cmds;
 
@@ -44,7 +53,18 @@ public class CWVote extends JavaPlugin {
         }
         cwcore = (CWCore)plugin;
 
-        sql = new MySQL(this, "37.26.106.5", "3306", "clashwar_vote", "clashwar_main", SqlPass.Pass());
+        plugin = getServer().getPluginManager().getPlugin("ClashWars");
+        if (plugin == null || !(plugin instanceof ClashWars)) {
+            log("ClashWars dependency couldn't be loaded!");
+            setEnabled(false);
+            return;
+        }
+        cw = (ClashWars)plugin;
+
+        cfg = new PluginCfg("plugins/CWVote/CWVote.yml");
+        cfg.load();
+
+        sql = new MySQL(this, "37.26.106.5", "3306", "clashwar_vote", "clashwar_main", cfg.SQL_PASS);
         try {
             c = sql.openConnection();
         } catch(Exception e) {
@@ -54,6 +74,10 @@ public class CWVote extends JavaPlugin {
             setEnabled(false);
             return;
         }
+
+        tm = new TokenManager(this);
+
+        shop = new ShopMenu(this);
 
         registerEvents();
 
@@ -69,7 +93,7 @@ public class CWVote extends JavaPlugin {
 
     private void registerEvents() {
         PluginManager pm = getServer().getPluginManager();
-        //pm.registerEvents(new MainEvents(this), this);
+        pm.registerEvents(shop, this);
     }
 
 
@@ -85,4 +109,21 @@ public class CWVote extends JavaPlugin {
         return instance;
     }
 
+    public CWCore getCore() {
+        return cwcore;
+    }
+
+    public ClashWars getCW() {
+        return cw;
+    }
+
+
+    public PluginCfg getCfg() {
+        return cfg;
+    }
+
+
+    public Connection getSql() {
+        return c;
+    }
 }
